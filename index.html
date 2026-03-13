@@ -6,6 +6,8 @@
   <title>Junamatkaajan opas</title>
   <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Junamatkaajan opas&quot;,&quot;short_name&quot;:&quot;Juna&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0f1117&quot;,&quot;theme_color&quot;:&quot;#00c896&quot;}" />
   <meta name="theme-color" content="#00c896" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&display=swap');
 
@@ -194,6 +196,49 @@
 
     footer { text-align: center; padding: 14px; font-size: 0.74rem; color: var(--muted); border-top: 1px solid var(--border); }
     footer a { color: var(--accent); text-decoration: none; }
+
+    /* Map section */
+    .map-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; position: relative;
+    }
+    #trainMap { width: 100%; height: 340px; }
+    .map-loading {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+      background: var(--surface); z-index: 10; border-radius: var(--radius);
+    }
+    .map-loading p { color: var(--muted); font-size: 0.85rem; }
+    /* Dark map tiles */
+    .leaflet-tile { filter: brightness(0.85) saturate(0.7) hue-rotate(180deg) invert(1); }
+    @media (prefers-color-scheme: light) {
+      .leaflet-tile { filter: none; }
+    }
+    /* Custom train marker */
+    .train-marker-own { 
+      background: var(--accent); border: 2.5px solid #fff;
+      border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb,var(--accent) 40%,transparent), 0 2px 8px rgba(0,0,0,.5);
+    }
+    .train-marker-other {
+      background: #4a90d9; border: 2px solid rgba(255,255,255,.6);
+      border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,.4);
+      opacity: 0.75;
+    }
+    .train-popup { font-family: var(--font-mono); font-size: 0.78rem; }
+    .map-refresh-btn {
+      position: absolute; bottom: 10px; right: 10px; z-index: 999;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 10px; font-size: 0.75rem;
+      color: var(--muted); cursor: pointer; font-family: var(--font-body);
+    }
+    .map-refresh-btn:hover { color: var(--text); }
+    .leaflet-popup-content-wrapper {
+      background: var(--surface) !important; color: var(--text) !important;
+      border: 1px solid var(--border) !important; border-radius: 10px !important;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3) !important;
+    }
+    .leaflet-popup-tip { background: var(--surface) !important; }
+    .leaflet-popup-content { margin: 8px 12px !important; }
 
     @keyframes fadeIn { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
     .f1{animation:fadeIn .3s ease both}
@@ -401,7 +446,80 @@ function buildTimetableHTML(stops, nextStop, showAll) {
     </div>`;
 }
 
+  // init map after DOM ready
+  setTimeout(() => initMap(trainNumber), 100);
+}
+
+// ── Map ───────────────────────────────────────────────────────
+let _map = null, _mapMarkers = [], _myTrainNumber = null;
+
+async function initMap() {
+  if (!window.L) { setTimeout(initMap, 200); return; }
+  const el = document.getElementById('trainMap');
+  if (!el) return;
+
+  // Default center: Finland
+  _map = L.map('trainMap', { zoomControl: true, attributionControl: false }).setView([64.5, 26], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 16 }).addTo(_map);
+  L.control.attribution({ prefix: '© OpenStreetMap' }).addTo(_map);
+
+  await refreshMap();
+
+  // Auto-refresh map every 30s
+  setInterval(refreshMap, 30000);
+}
+
+async function refreshMap() {
+  const loading = document.getElementById('mapLoading');
+  try {
+    const res = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest/');
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    if (loading) loading.style.display = 'none';
+    if (!_map) return;
+
+    // Remove old markers
+    _mapMarkers.forEach(m => m.remove());
+    _mapMarkers = [];
+
+    let ownLatLng = null;
+
+    for (const loc of data) {
+      const num = String(loc.trainNumber);
+      const isOwn = num === String(_myTrainNumber);
+      const lat = loc.location?.coordinates?.[1];
+      const lng = loc.location?.coordinates?.[0];
+      if (!lat || !lng) continue;
+
+      const size = isOwn ? 18 : 10;
+      const icon = L.divIcon({
+        className: isOwn ? 'train-marker-own' : 'train-marker-other',
+        iconSize: [size, size],
+        iconAnchor: [size/2, size/2],
+      });
+
+      const speed = loc.speed != null ? `${loc.speed} km/h` : '–';
+      const popup = `<div class="train-popup"><b>${isOwn ? '🚆 ' : ''}${num}</b><br>${speed}</div>`;
+
+      const marker = L.marker([lat, lng], { icon, zIndexOffset: isOwn ? 1000 : 0 })
+        .bindPopup(popup)
+        .addTo(_map);
+      _mapMarkers.push(marker);
+
+      if (isOwn) {
+        ownLatLng = [lat, lng];
+        marker.openPopup();
+      }
+    }
+
+    if (ownLatLng) _map.setView(ownLatLng, Math.max(_map.getZoom(), 8), { animate: true });
+  } catch(e) {
+    if (loading) { loading.querySelector('p').textContent = 'Sijaintitiedot ei saatavilla'; }
+  }
+}
+
 function renderTrain(train, trainNumber) {
+  _myTrainNumber = trainNumber;
   const rows  = train.timeTableRows || [];
   const stops = buildStops(rows);
   const next  = findNextStop(stops);
@@ -446,15 +564,15 @@ function renderTrain(train, trainNumber) {
       <div class="info-grid">
         <div class="info-cell">
           <div class="info-label">Seuraava asema</div>
-          <div class="info-value ${hasEnded?'':'ok'}">${next ? stationName(next.code) : '–'}</div>
+          <div class="info-value ${hasEnded?'':'ok'}" id="iv-next">${next ? stationName(next.code) : '–'}</div>
         </div>
         <div class="info-cell">
           <div class="info-label">Saapuu</div>
-          <div class="info-value">${fmtTime(nextTime)}</div>
+          <div class="info-value" id="iv-arr">${fmtTime(nextTime)}</div>
         </div>
         <div class="info-cell">
           <div class="info-label">Aikaa</div>
-          <div class="info-value ${isLate?'late':''}">${minsStr}</div>
+          <div class="info-value ${isLate?'late':''}" id="iv-mins">${minsStr}</div>
         </div>
         <div class="info-cell">
           <div class="info-label">Myöhästyminen</div>
@@ -477,6 +595,16 @@ function renderTrain(train, trainNumber) {
       </div>
     </div>
     <div id="ttContainer">${buildTimetableHTML(stops, next, false)}</div>
+
+    <div class="section-header f3">
+      <span class="section-title">Junat kartalla</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="map-wrap f3">
+      <div class="map-loading" id="mapLoading"><div class="spinner"></div><p>Ladataan karttaa…</p></div>
+      <div id="trainMap"></div>
+      <button class="map-refresh-btn" onclick="refreshMap()">↻ Päivitä</button>
+    </div>
 
     <div class="section-header f3">
       <span class="section-title">Vaunukartta</span>
@@ -523,6 +651,28 @@ async function main() {
 }
 
 main();
+
+// ── Live minute tick ──────────────────────────────────────────
+// Refresh timetable countdowns every 60s
+setInterval(() => {
+  if (_stops.length) {
+    _next = findNextStop(_stops);
+    const showAll = document.getElementById('allStopsToggle')?.checked || false;
+    const container = document.getElementById('ttContainer');
+    if (container) container.innerHTML = buildTimetableHTML(_stops, _next, showAll);
+    // Update top card
+    const nextEntry = _next ? (_next.arr || _next.dep) : null;
+    const nextTime  = nextEntry ? (nextEntry.estimate || nextEntry.scheduled) : null;
+    const delay     = _next ? Math.max(_next.arr?.diff||0, _next.dep?.diff||0) : 0;
+    const isLate    = delay > 2;
+    const mins      = minutesUntil(nextTime);
+    const minsStr   = mins === null ? '–' : (mins <= 0 ? 'Nyt' : `${mins} min`);
+    const el = id => document.getElementById(id);
+    if (el('iv-next'))  { el('iv-next').textContent  = _next ? stationName(_next.code) : '–'; el('iv-next').className  = `info-value ${_next?'ok':''}`; }
+    if (el('iv-arr'))     el('iv-arr').textContent   = fmtTime(nextTime);
+    if (el('iv-mins'))  { el('iv-mins').textContent  = minsStr; el('iv-mins').className  = `info-value ${isLate?'late':''}`; }
+  }
+}, 60000);
 </script>
 </body>
 </html>
