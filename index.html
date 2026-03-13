@@ -292,8 +292,8 @@ function buildStops(rows) {
 function findNextStop(stops) {
   const now = Date.now();
   for (const stop of stops) {
-    // Use departure time first, fall back to arrival (last stop has no departure)
-    const entry = stop.dep || stop.arr;
+    // Use arrival time first (that's when train arrives), fall back to departure (first stop has no arrival)
+    const entry = stop.arr || stop.dep;
     if (!entry) continue;
     if (entry.actual) continue; // already departed/arrived
     const t = new Date(entry.estimate || entry.scheduled);
@@ -412,7 +412,7 @@ function renderTrain(train, trainNumber) {
   const trainType = train.trainType || '';
   const displayName = `${trainType}${trainNumber}`;
 
-  const nextEntry = next ? (next.dep || next.arr) : null;
+  const nextEntry = next ? (next.arr || next.dep) : null;
   const nextTime  = nextEntry ? (nextEntry.estimate || nextEntry.scheduled) : null;
   const delay     = next ? Math.max(next.arr?.diff||0, next.dep?.diff||0) : 0;
   const isLate    = delay > 2;
