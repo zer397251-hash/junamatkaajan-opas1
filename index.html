@@ -121,17 +121,47 @@
     .section-title { font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); white-space: nowrap; }
     .section-line { flex: 1; height: 1px; background: var(--border); }
 
+    /* Toggle switch (Apple-style) */
+    .toggle-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .toggle-label {
+      font-size: 0.75rem; color: var(--muted); font-weight: 500; user-select: none; cursor: pointer;
+    }
+    .toggle {
+      position: relative; width: 40px; height: 24px; flex-shrink: 0; cursor: pointer;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: var(--border);
+      border-radius: 12px;
+      transition: background 0.22s cubic-bezier(.4,0,.2,1);
+    }
+    .toggle input:checked + .toggle-track { background: var(--accent); }
+    .toggle-thumb {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,.35);
+      transition: transform 0.22s cubic-bezier(.4,0,.2,1);
+      pointer-events: none;
+    }
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
+
     /* Timetable */
     .tt-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .tt-thead {
-      display: grid; grid-template-columns: 28px 1fr 54px 54px 46px;
+      display: grid; grid-template-columns: 28px 1fr 54px 54px 48px;
       gap: 6px; padding: 8px 14px;
       background: var(--surface2); border-bottom: 1px solid var(--border);
     }
     .tt-thead span { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
     .tt-thead span:nth-child(n+3) { text-align: right; }
     .tt-row {
-      display: grid; grid-template-columns: 28px 1fr 54px 54px 46px;
+      display: grid; grid-template-columns: 28px 1fr 54px 54px 48px;
       gap: 6px; align-items: center;
       padding: 9px 14px; border-bottom: 1px solid var(--border);
       font-size: 0.87rem;
@@ -148,9 +178,11 @@
     .tt-t { font-family: var(--font-mono); font-size: 0.81rem; text-align: right; color: var(--muted); }
     .tt-t.ok   { color: var(--text); }
     .tt-t.late { color: var(--danger); }
-    .tt-d { font-family: var(--font-mono); font-size: 0.72rem; text-align: right; }
-    .tt-d.plus { color: var(--danger); }
-    .tt-d.zero { color: var(--accent); }
+    .tt-mins { font-family: var(--font-mono); font-size: 0.78rem; text-align: right; font-weight: 500; }
+    .tt-mins.soon  { color: var(--accent); }
+    .tt-mins.late  { color: var(--danger); }
+    .tt-mins.past  { color: var(--muted); opacity: 0.5; }
+    .tt-mins.far   { color: var(--muted); }
 
     .iframe-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .iframe-wrapper iframe { width: 100%; height: 72vh; border: none; display: block; }
@@ -199,6 +231,13 @@
 'use strict';
 const app = document.getElementById('app');
 let STATIONS = {};
+let _stops = [], _next = null;
+
+function refreshTimetable() {
+  const showAll = document.getElementById('allStopsToggle')?.checked || false;
+  const container = document.getElementById('ttContainer');
+  if (container) container.innerHTML = buildTimetableHTML(_stops, _next, showAll);
+}
 
 function pad(n) { return String(n).padStart(2,'0'); }
 function todayStr() { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
@@ -289,12 +328,26 @@ function renderInput() {
   inp.addEventListener('keydown', e => { if(e.key==='Enter') go(); });
 }
 
-function buildTimetableHTML(stops, nextStop) {
+// Dwell time in minutes between arrival and departure at a stop
+function dwellMinutes(stop) {
+  if (!stop.arr || !stop.dep) return 0;
+  const a = new Date(stop.arr.scheduled);
+  const d = new Date(stop.dep.scheduled);
+  return Math.round((d - a) / 60000);
+}
+
+function buildTimetableHTML(stops, nextStop, showAll) {
   if (!stops.length) return '<p style="padding:14px;color:var(--muted)">Ei aikataulutietoja.</p>';
 
-  const rows = stops.map(stop => {
+  // Filter: hide pass-through stops (dwell < 1 min and not first/last) unless showAll
+  const filtered = showAll ? stops : stops.filter((stop, i) => {
+    if (i === 0 || i === stops.length - 1) return true; // always show endpoints
+    if (stop === nextStop) return true;                  // always show next stop
+    return dwellMinutes(stop) >= 1;
+  });
+
+  const rows = filtered.map(stop => {
     const isNext = stop === nextStop;
-    // A stop is "past" if its departure (or arrival for last stop) has actualTime
     const refEntry = stop.dep || stop.arr;
     const isPast = refEntry ? !!refEntry.actual : false;
     const dotCls = isPast ? 'dot-p' : (isNext ? 'dot-c' : 'dot-f');
@@ -308,11 +361,25 @@ function buildTimetableHTML(stops, nextStop) {
       return `<span class="tt-t ${cls}">${fmtTime(display)}</span>`;
     }
 
-    const delay = Math.max(stop.arr?.diff || 0, stop.dep?.diff || 0);
-    let delayCell;
-    if (isPast) delayCell = '<span class="tt-d"></span>';
-    else if (delay > 2) delayCell = `<span class="tt-d plus">+${delay}</span>`;
-    else delayCell = '<span class="tt-d zero">✓</span>';
+    // Minutes until arrival at this stop
+    let minsCell;
+    if (isPast) {
+      minsCell = '<span class="tt-mins past">–</span>';
+    } else {
+      const arrEntry = stop.arr || stop.dep;
+      const t = arrEntry ? (arrEntry.estimate || arrEntry.scheduled) : null;
+      const m = minutesUntil(t);
+      if (m === null) {
+        minsCell = '<span class="tt-mins far">–</span>';
+      } else if (m <= 0) {
+        minsCell = '<span class="tt-mins soon">Nyt</span>';
+      } else if (m <= 10) {
+        minsCell = `<span class="tt-mins soon">${m} min</span>`;
+      } else {
+        const isLateStop = Math.max(stop.arr?.diff||0, stop.dep?.diff||0) > 2;
+        minsCell = `<span class="tt-mins ${isLateStop?'late':'far'}">${m} min</span>`;
+      }
+    }
 
     return `
       <div class="tt-row ${rowCls}">
@@ -320,7 +387,7 @@ function buildTimetableHTML(stops, nextStop) {
         <div class="tt-name">${stationName(stop.code)}</div>
         ${timeCell(stop.arr)}
         ${timeCell(stop.dep)}
-        ${delayCell}
+        ${minsCell}
       </div>`;
   });
 
@@ -328,7 +395,7 @@ function buildTimetableHTML(stops, nextStop) {
     <div class="tt-wrap f3">
       <div class="tt-thead">
         <span></span><span>Asema</span>
-        <span>Sap.</span><span>Läh.</span><span>+min</span>
+        <span>Sap.</span><span>Läh.</span><span>Min</span>
       </div>
       <div>${rows.join('')}</div>
     </div>`;
@@ -338,6 +405,7 @@ function renderTrain(train, trainNumber) {
   const rows  = train.timeTableRows || [];
   const stops = buildStops(rows);
   const next  = findNextStop(stops);
+  _stops = stops; _next = next;
 
   const origin = stationName(stops[0]?.code || '');
   const dest   = stationName(stops[stops.length-1]?.code || '');
@@ -396,11 +464,19 @@ function renderTrain(train, trainNumber) {
       <button class="share-btn" id="shareBtn" onclick="shareLink('${trainNumber}')">🔗 Jaa linkki junaan</button>
     </div>
 
-    <div class="section-header f2">
+    <div class="section-header f2" style="align-items:center">
       <span class="section-title">Aikataulu</span>
       <div class="section-line"></div>
+      <div class="toggle-row">
+        <label class="toggle-label" for="allStopsToggle">Kaikki asemat</label>
+        <label class="toggle">
+          <input type="checkbox" id="allStopsToggle" onchange="refreshTimetable()">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
     </div>
-    ${buildTimetableHTML(stops, next)}
+    <div id="ttContainer">${buildTimetableHTML(stops, next, false)}</div>
 
     <div class="section-header f3">
       <span class="section-title">Vaunukartta</span>
