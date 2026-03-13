@@ -7,247 +7,144 @@
   <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Junamatkaajan opas&quot;,&quot;short_name&quot;:&quot;Juna&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0f1117&quot;,&quot;theme_color&quot;:&quot;#00c896&quot;}" />
   <meta name="theme-color" content="#00c896" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
 
-    :root {
-      --bg: #0f1117;
-      --surface: #181c27;
-      --surface2: #1f2436;
-      --border: #2a3045;
-      --accent: #00c896;
-      --accent2: #00a2ff;
-      --text: #e8ecf4;
-      --muted: #6b7594;
-      --danger: #ff4f6b;
-      --warn: #f5a623;
-      --radius: 16px;
-      --font-display: 'Syne', sans-serif;
-      --font-body: 'DM Sans', sans-serif;
-      --font-mono: 'DM Mono', monospace;
-    }
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #f0f2f8; --surface: #ffffff; --surface2: #e8ecf4;
-        --border: #d0d6e8; --text: #0f1117; --muted: #6b7594;
-      }
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
-    body { display: flex; flex-direction: column; min-height: 100dvh; }
+:root {
+  --bg:#0f1117; --surface:#181c27; --surface2:#1f2436; --border:#2a3045;
+  --accent:#00c896; --accent2:#00a2ff; --text:#e8ecf4; --muted:#6b7594;
+  --danger:#ff4f6b; --radius:16px;
+  --fd:'Syne',sans-serif; --fb:'DM Sans',sans-serif; --fm:'DM Mono',monospace;
+}
+@media(prefers-color-scheme:light){
+  :root{ --bg:#f0f2f8; --surface:#fff; --surface2:#e8ecf4; --border:#d0d6e8; --text:#0f1117; }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--fb);font-size:16px;line-height:1.5}
+body{display:flex;flex-direction:column;min-height:100dvh}
 
-    header {
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      position: sticky; top: 0; z-index: 100;
-    }
-    .logo-icon {
-      width: 32px; height: 32px; background: var(--accent);
-      border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    header h1 { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; flex: 1; }
-    .header-badge {
-      font-family: var(--font-mono); font-size: 0.82rem; color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 12%, transparent);
-      padding: 4px 10px; border-radius: 20px;
-      border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
-    }
-    .change-btn {
-      background: var(--surface2); color: var(--muted);
-      border: 1px solid var(--border); border-radius: 8px;
-      padding: 6px 12px; font-size: 0.78rem; font-family: var(--font-body); font-weight: 500; cursor: pointer;
-    }
-    .change-btn:hover { color: var(--text); }
+/* ── Header ── */
+header{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:200}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+header h1{font-family:var(--fd);font-size:1.05rem;font-weight:700;letter-spacing:-.02em;flex:1}
+.hdr-badge{font-family:var(--fm);font-size:.82rem;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);padding:4px 10px;border-radius:20px;border:1px solid color-mix(in srgb,var(--accent) 25%,transparent)}
+.change-btn{background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:.78rem;font-family:var(--fb);font-weight:500;cursor:pointer}
+.change-btn:hover{color:var(--text)}
 
-    main { flex: 1; display: flex; flex-direction: column; max-width: 640px; width: 100%; margin: 0 auto; padding: 18px 14px; gap: 14px; }
+/* ── Main ── */
+main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin:0 auto;padding:18px 14px;gap:14px}
 
-    .input-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; flex: 1; padding: 48px 0; }
-    .input-hero { text-align: center; }
-    .input-hero h2 {
-      font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; letter-spacing: -0.04em;
-      background: linear-gradient(135deg, var(--text), var(--muted));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .input-hero p { color: var(--muted); margin-top: 8px; font-size: 0.9rem; }
-    .input-row { display: flex; gap: 10px; width: 100%; max-width: 300px; }
-    input[type="text"] {
-      flex: 1; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
-      padding: 14px 16px; font-family: var(--font-mono); font-size: 1.3rem; font-weight: 500;
-      color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s;
-      text-align: center; letter-spacing: 0.06em;
-    }
-    input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
-    input[type="text"]::placeholder { color: var(--muted); font-size: 0.9rem; letter-spacing: 0; }
-    button.primary {
-      background: var(--accent); color: #000; border: none; border-radius: 12px;
-      padding: 14px 22px; font-family: var(--font-display); font-size: 0.95rem; font-weight: 700;
-      cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap;
-    }
-    button.primary:hover { opacity: 0.88; }
-    button.primary:active { transform: scale(0.97); }
+/* ── Input ── */
+.input-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;flex:1;padding:48px 0}
+.input-hero{text-align:center}
+.input-hero h2{font-family:var(--fd);font-size:2.2rem;font-weight:800;letter-spacing:-.04em;background:linear-gradient(135deg,var(--text),var(--muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.input-hero p{color:var(--muted);margin-top:8px;font-size:.9rem}
+.input-row{display:flex;gap:10px;width:100%;max-width:300px}
+input[type=text]{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;font-family:var(--fm);font-size:1.3rem;font-weight:500;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;text-align:center;letter-spacing:.06em}
+input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
+input[type=text]::placeholder{color:var(--muted);font-size:.9rem;letter-spacing:0}
+.btn-primary{background:var(--accent);color:#000;border:none;border-radius:12px;padding:14px 22px;font-family:var(--fd);font-size:.95rem;font-weight:700;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap}
+.btn-primary:hover{opacity:.88}
+.btn-primary:active{transform:scale(.97)}
 
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; position: relative; overflow: hidden; }
-    .card-accent::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-    }
-    .train-name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .train-name { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.02em; }
-    .status-pill { font-size: 0.7rem; font-weight: 600; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; }
-    .pill-ok    { background: color-mix(in srgb,var(--accent) 15%,transparent); color:var(--accent); border:1px solid color-mix(in srgb,var(--accent) 30%,transparent); }
-    .pill-late  { background: color-mix(in srgb,var(--danger) 15%,transparent); color:var(--danger); border:1px solid color-mix(in srgb,var(--danger) 30%,transparent); }
-    .pill-ended { background: color-mix(in srgb,var(--muted)  15%,transparent); color:var(--muted);  border:1px solid color-mix(in srgb,var(--muted)  30%,transparent); }
-    .route-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-    .route-station { font-family: var(--font-display); font-size: 1rem; font-weight: 600; letter-spacing: -0.02em; }
-    .route-arrow { color: var(--accent); font-size: 1rem; flex-shrink: 0; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .info-cell { background: var(--surface2); border-radius: 10px; padding: 11px 13px; }
-    .info-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 500; margin-bottom: 3px; }
-    .info-value { font-family: var(--font-mono); font-size: 1rem; font-weight: 500; }
-    .info-value.ok   { color: var(--accent); }
-    .info-value.late { color: var(--danger); }
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
+.card-accent::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.train-name-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.train-name{font-family:var(--fm);font-size:1.6rem;font-weight:500;letter-spacing:.02em}
+.pill{font-size:.7rem;font-weight:600;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+.pill-ok{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+.pill-late{background:color-mix(in srgb,var(--danger) 15%,transparent);color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 30%,transparent)}
+.pill-ended{background:color-mix(in srgb,var(--muted) 15%,transparent);color:var(--muted);border:1px solid color-mix(in srgb,var(--muted) 30%,transparent)}
+.route-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.route-station{font-family:var(--fd);font-size:1rem;font-weight:600;letter-spacing:-.02em}
+.route-arrow{color:var(--accent);font-size:1rem;flex-shrink:0}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.info-cell{background:var(--surface2);border-radius:10px;padding:11px 13px}
+.info-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:500;margin-bottom:3px}
+.info-value{font-family:var(--fm);font-size:1rem;font-weight:500}
+.info-value.ok{color:var(--accent)}
+.info-value.late{color:var(--danger)}
+.share-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:13px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 14px;font-family:var(--fb);font-size:.83rem;font-weight:500;cursor:pointer}
+.share-btn:hover{background:var(--border)}
 
-    .share-btn {
-      display: flex; align-items: center; justify-content: center; gap: 7px;
-      width: 100%; margin-top: 13px;
-      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
-      border-radius: 9px; padding: 9px 14px; font-family: var(--font-body);
-      font-size: 0.83rem; font-weight: 500; cursor: pointer;
-    }
-    .share-btn:hover { background: var(--border); }
+/* ── Section header ── */
+.sec{display:flex;align-items:center;gap:10px;margin-top:4px}
+.sec-title{font-family:var(--fd);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);white-space:nowrap}
+.sec-line{flex:1;height:1px;background:var(--border)}
 
-    .section-header { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-    .section-title { font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); white-space: nowrap; }
-    .section-line { flex: 1; height: 1px; background: var(--border); }
+/* ── Toggle ── */
+.toggle-row{display:flex;align-items:center;gap:8px}
+.toggle-label{font-size:.75rem;color:var(--muted);font-weight:500;user-select:none;cursor:pointer}
+.toggle{position:relative;width:40px;height:24px;flex-shrink:0;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--border);border-radius:12px;transition:background .22s cubic-bezier(.4,0,.2,1)}
+.toggle input:checked+.toggle-track{background:var(--accent)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .22s cubic-bezier(.4,0,.2,1);pointer-events:none}
+.toggle input:checked~.toggle-thumb{transform:translateX(16px)}
 
-    /* Toggle switch (Apple-style) */
-    .toggle-row {
-      display: flex; align-items: center; gap: 8px;
-    }
-    .toggle-label {
-      font-size: 0.75rem; color: var(--muted); font-weight: 500; user-select: none; cursor: pointer;
-    }
-    .toggle {
-      position: relative; width: 40px; height: 24px; flex-shrink: 0; cursor: pointer;
-    }
-    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-    .toggle-track {
-      position: absolute; inset: 0;
-      background: var(--border);
-      border-radius: 12px;
-      transition: background 0.22s cubic-bezier(.4,0,.2,1);
-    }
-    .toggle input:checked + .toggle-track { background: var(--accent); }
-    .toggle-thumb {
-      position: absolute;
-      top: 3px; left: 3px;
-      width: 18px; height: 18px;
-      background: #fff;
-      border-radius: 50%;
-      box-shadow: 0 1px 4px rgba(0,0,0,.35);
-      transition: transform 0.22s cubic-bezier(.4,0,.2,1);
-      pointer-events: none;
-    }
-    .toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
+/* ── Timetable ── */
+.tt-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.tt-thead{display:grid;grid-template-columns:28px 1fr 54px 54px 48px;gap:6px;padding:8px 14px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.tt-thead span{font-size:.64rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.tt-thead span:nth-child(n+3){text-align:right}
+.tt-row{display:grid;grid-template-columns:28px 1fr 54px 54px 48px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);font-size:.87rem}
+.tt-row:last-child{border-bottom:none}
+.tt-row.past{opacity:.38}
+.tt-row.cur{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.tt-row.cur .tt-name{color:var(--accent);font-weight:600}
+.tt-dot{width:9px;height:9px;border-radius:50%;background:var(--border);margin:auto;flex-shrink:0}
+.dot-p{background:var(--muted)}
+.dot-c{background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.dot-f{background:var(--border)}
+.tt-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tt-t{font-family:var(--fm);font-size:.81rem;text-align:right;color:var(--muted)}
+.tt-t.ok{color:var(--text)}
+.tt-t.late{color:var(--danger)}
+.tt-mins{font-family:var(--fm);font-size:.78rem;text-align:right;font-weight:500}
+.tt-mins.soon{color:var(--accent)}
+.tt-mins.late{color:var(--danger)}
+.tt-mins.far{color:var(--muted)}
 
-    /* Timetable */
-    .tt-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .tt-thead {
-      display: grid; grid-template-columns: 28px 1fr 54px 54px 48px;
-      gap: 6px; padding: 8px 14px;
-      background: var(--surface2); border-bottom: 1px solid var(--border);
-    }
-    .tt-thead span { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
-    .tt-thead span:nth-child(n+3) { text-align: right; }
-    .tt-row {
-      display: grid; grid-template-columns: 28px 1fr 54px 54px 48px;
-      gap: 6px; align-items: center;
-      padding: 9px 14px; border-bottom: 1px solid var(--border);
-      font-size: 0.87rem;
-    }
-    .tt-row:last-child { border-bottom: none; }
-    .tt-row.past  { opacity: 0.38; }
-    .tt-row.cur   { background: color-mix(in srgb, var(--accent) 8%, transparent); }
-    .tt-row.cur .tt-name { color: var(--accent); font-weight: 600; }
-    .tt-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--border); margin: auto; flex-shrink:0; }
-    .dot-p { background: var(--muted); }
-    .dot-c { background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent); }
-    .dot-f { background: var(--border); }
-    .tt-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .tt-t { font-family: var(--font-mono); font-size: 0.81rem; text-align: right; color: var(--muted); }
-    .tt-t.ok   { color: var(--text); }
-    .tt-t.late { color: var(--danger); }
-    .tt-mins { font-family: var(--font-mono); font-size: 0.78rem; text-align: right; font-weight: 500; }
-    .tt-mins.soon  { color: var(--accent); }
-    .tt-mins.late  { color: var(--danger); }
-    .tt-mins.past  { color: var(--muted); opacity: 0.5; }
-    .tt-mins.far   { color: var(--muted); }
+/* ── Map ── */
+.map-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;position:relative}
+#trainMap{width:100%;height:340px;display:block}
+.map-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--surface);z-index:500}
+.map-overlay p{color:var(--muted);font-size:.85rem}
+.map-refresh{position:absolute;bottom:10px;right:10px;z-index:999;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.75rem;color:var(--muted);cursor:pointer;font-family:var(--fb)}
+.map-refresh:hover{color:var(--text)}
+/* Dark-mode tile inversion */
+.leaflet-tile{filter:brightness(.85) saturate(.7) hue-rotate(180deg) invert(1)}
+@media(prefers-color-scheme:light){.leaflet-tile{filter:none}}
+/* Marker styles */
+.mk-own{background:var(--accent);border:2.5px solid #fff;border-radius:50%;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 40%,transparent),0 2px 8px rgba(0,0,0,.5)}
+.mk-other{background:#4a90d9;border:2px solid rgba(255,255,255,.55);border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.4);opacity:.7}
+.leaflet-popup-content-wrapper{background:var(--surface)!important;color:var(--text)!important;border:1px solid var(--border)!important;border-radius:10px!important;box-shadow:0 4px 16px rgba(0,0,0,.35)!important}
+.leaflet-popup-tip{background:var(--surface)!important}
+.leaflet-popup-content{margin:8px 12px!important;font-family:var(--fm);font-size:.8rem}
 
-    .iframe-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .iframe-wrapper iframe { width: 100%; height: 72vh; border: none; display: block; }
+/* ── Iframe ── */
+.iframe-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.iframe-wrap iframe{width:100%;height:72vh;border:none;display:block}
 
-    .state-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px 20px; text-align: center; }
-    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 14px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .state-card p { color: var(--muted); font-size: 0.9rem; }
+/* ── State ── */
+.state-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:40px 20px;text-align:center}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.state-card p{color:var(--muted);font-size:.9rem}
 
-    footer { text-align: center; padding: 14px; font-size: 0.74rem; color: var(--muted); border-top: 1px solid var(--border); }
-    footer a { color: var(--accent); text-decoration: none; }
+footer{text-align:center;padding:14px;font-size:.74rem;color:var(--muted);border-top:1px solid var(--border)}
+footer a{color:var(--accent);text-decoration:none}
 
-    /* Map section */
-    .map-wrap {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); overflow: hidden; position: relative;
-    }
-    #trainMap { width: 100%; height: 340px; }
-    .map-loading {
-      position: absolute; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 10px;
-      background: var(--surface); z-index: 10; border-radius: var(--radius);
-    }
-    .map-loading p { color: var(--muted); font-size: 0.85rem; }
-    /* Dark map tiles */
-    .leaflet-tile { filter: brightness(0.85) saturate(0.7) hue-rotate(180deg) invert(1); }
-    @media (prefers-color-scheme: light) {
-      .leaflet-tile { filter: none; }
-    }
-    /* Custom train marker */
-    .train-marker-own { 
-      background: var(--accent); border: 2.5px solid #fff;
-      border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb,var(--accent) 40%,transparent), 0 2px 8px rgba(0,0,0,.5);
-    }
-    .train-marker-other {
-      background: #4a90d9; border: 2px solid rgba(255,255,255,.6);
-      border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,.4);
-      opacity: 0.75;
-    }
-    .train-popup { font-family: var(--font-mono); font-size: 0.78rem; }
-    .map-refresh-btn {
-      position: absolute; bottom: 10px; right: 10px; z-index: 999;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; padding: 6px 10px; font-size: 0.75rem;
-      color: var(--muted); cursor: pointer; font-family: var(--font-body);
-    }
-    .map-refresh-btn:hover { color: var(--text); }
-    .leaflet-popup-content-wrapper {
-      background: var(--surface) !important; color: var(--text) !important;
-      border: 1px solid var(--border) !important; border-radius: 10px !important;
-      box-shadow: 0 4px 16px rgba(0,0,0,.3) !important;
-    }
-    .leaflet-popup-tip { background: var(--surface) !important; }
-    .leaflet-popup-content { margin: 8px 12px !important; }
-
-    @keyframes fadeIn { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
-    .f1{animation:fadeIn .3s ease both}
-    .f2{animation:fadeIn .3s .08s ease both}
-    .f3{animation:fadeIn .3s .16s ease both}
-    .f4{animation:fadeIn .3s .24s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.f1{animation:fadeIn .3s ease both}
+.f2{animation:fadeIn .3s .08s ease both}
+.f3{animation:fadeIn .3s .16s ease both}
+.f4{animation:fadeIn .3s .24s ease both}
   </style>
 </head>
 <body>
+
 <header>
   <div class="logo-icon">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -255,13 +152,13 @@
       <rect x="5" y="3" width="8" height="4" rx="1.5" fill="#000" fill-opacity=".6"/>
       <circle cx="5.5" cy="15.5" r="1.5" fill="#000"/>
       <circle cx="12.5" cy="15.5" r="1.5" fill="#000"/>
-      <rect x="4" y="8.5" width="3" height="2.5" rx="0.5" fill="#00c896"/>
-      <rect x="7.5" y="8.5" width="3" height="2.5" rx="0.5" fill="#00c896"/>
-      <rect x="11" y="8.5" width="3" height="2.5" rx="0.5" fill="#00c896"/>
+      <rect x="4" y="8.5" width="3" height="2.5" rx=".5" fill="#00c896"/>
+      <rect x="7.5" y="8.5" width="3" height="2.5" rx=".5" fill="#00c896"/>
+      <rect x="11" y="8.5" width="3" height="2.5" rx=".5" fill="#00c896"/>
     </svg>
   </div>
   <h1>Junamatkaajan opas</h1>
-  <span id="hdrBadge" style="display:none" class="header-badge"></span>
+  <span id="hdrBadge" style="display:none" class="hdr-badge"></span>
   <button id="hdrChange" class="change-btn" style="display:none" onclick="goHome()">Vaihda</button>
 </header>
 
@@ -274,23 +171,23 @@
 
 <script>
 'use strict';
+
+// ── State ─────────────────────────────────────────────────────
 const app = document.getElementById('app');
 let STATIONS = {};
-let _stops = [], _next = null;
+let _stops = [], _next = null, _myTrain = null;
+let _map = null, _mapMarkers = [];
 
-function refreshTimetable() {
-  const showAll = document.getElementById('allStopsToggle')?.checked || false;
-  const container = document.getElementById('ttContainer');
-  if (container) container.innerHTML = buildTimetableHTML(_stops, _next, showAll);
-}
+// ── Helpers ───────────────────────────────────────────────────
+const pad = n => String(n).padStart(2,'0');
+const todayStr = () => { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const fmtTime = iso => { if(!iso) return '–'; const d=new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const minutesUntil = iso => { if(!iso) return null; return Math.round((new Date(iso)-Date.now())/60000); };
+const stationName = code => STATIONS[code] || code;
+const goHome = () => { location.href = location.pathname; };
+const $ = id => document.getElementById(id);
 
-function pad(n) { return String(n).padStart(2,'0'); }
-function todayStr() { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-function fmtTime(iso) { if(!iso) return '–'; const d=new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
-function minutesUntil(iso) { if(!iso) return null; return Math.round((new Date(iso)-Date.now())/60000); }
-function stationName(code) { return STATIONS[code] || code; }
-function goHome() { location.href = location.pathname; }
-
+// ── URL ───────────────────────────────────────────────────────
 function getTrainFromURL() {
   const p = new URLSearchParams(location.search);
   if (p.get('train')) return p.get('train').trim();
@@ -299,33 +196,31 @@ function getTrainFromURL() {
   return null;
 }
 
+// ── Station metadata ──────────────────────────────────────────
 async function loadStations() {
   try {
     const r = await fetch('https://rata.digitraffic.fi/api/v1/metadata/stations');
     if (!r.ok) return;
     const data = await r.json();
     for (const s of data) {
-      if (s.stationShortCode && s.stationName) {
+      if (s.stationShortCode && s.stationName)
         STATIONS[s.stationShortCode] = s.stationName.replace(/ asema$/i,'');
-      }
     }
   } catch(e) {}
 }
 
-// Merge DEPARTURE + ARRIVAL rows into per-station stop objects
+// ── Build per-station stop objects ────────────────────────────
 function buildStops(rows) {
   const map = new Map();
   for (const row of rows) {
     const code = row.stationShortCode;
-    if (!map.has(code)) map.set(code, { code, dep: null, arr: null });
+    if (!map.has(code)) map.set(code, { code, dep:null, arr:null });
     const stop = map.get(code);
     const entry = {
       scheduled: row.scheduledTime,
       estimate:  row.liveEstimateTime || row.scheduledTime,
       actual:    row.actualTime || null,
       diff:      row.differenceInMinutes || 0,
-      trainStopping: row.trainStopping,
-      commercialStop: row.commercialStop,
     };
     if (row.type === 'DEPARTURE') stop.dep = entry;
     else if (row.type === 'ARRIVAL') stop.arr = entry;
@@ -333,25 +228,169 @@ function buildStops(rows) {
   return Array.from(map.values());
 }
 
-// First stop not yet actually departed (no actualTime on departure, or for final stop no actualTime on arrival)
+// ── Next stop: first without actualTime whose time is upcoming ─
 function findNextStop(stops) {
   const now = Date.now();
   for (const stop of stops) {
-    // Use arrival time first (that's when train arrives), fall back to departure (first stop has no arrival)
     const entry = stop.arr || stop.dep;
-    if (!entry) continue;
-    if (entry.actual) continue; // already departed/arrived
+    if (!entry || entry.actual) continue;
     const t = new Date(entry.estimate || entry.scheduled);
-    if (t > now - 60000) return stop; // 1 min grace
+    if (t > now - 60000) return stop;
   }
   return null;
 }
 
+// ── Dwell time (minutes) ──────────────────────────────────────
+function dwellMinutes(stop) {
+  if (!stop.arr || !stop.dep) return 0;
+  return Math.round((new Date(stop.dep.scheduled) - new Date(stop.arr.scheduled)) / 60000);
+}
+
+// ── Minutes cell HTML ─────────────────────────────────────────
+function minsCell(stop, isPast) {
+  if (isPast) return '<span class="tt-mins far">–</span>';
+  const e = stop.arr || stop.dep;
+  const m = minutesUntil(e ? (e.estimate || e.scheduled) : null);
+  if (m === null) return '<span class="tt-mins far">–</span>';
+  if (m <= 0)    return '<span class="tt-mins soon">Nyt</span>';
+  const isLate = Math.max(stop.arr?.diff||0, stop.dep?.diff||0) > 2;
+  return `<span class="tt-mins ${m<=10?'soon':(isLate?'late':'far')}">${m} min</span>`;
+}
+
+// ── Build timetable HTML ──────────────────────────────────────
+function buildTimetableHTML(stops, nextStop, showAll) {
+  if (!stops.length) return '<p style="padding:14px;color:var(--muted)">Ei aikataulutietoja.</p>';
+
+  const filtered = showAll ? stops : stops.filter((s,i) => {
+    if (i===0 || i===stops.length-1 || s===nextStop) return true;
+    return dwellMinutes(s) >= 1;
+  });
+
+  const rows = filtered.map(stop => {
+    const isNext = stop === nextStop;
+    const ref = stop.dep || stop.arr;
+    const isPast = ref ? !!ref.actual : false;
+    const dotCls = isPast ? 'dot-p' : (isNext ? 'dot-c' : 'dot-f');
+    const rowCls = isPast ? 'past'  : (isNext ? 'cur'   : '');
+
+    const timeCell = entry => {
+      if (!entry) return '<span class="tt-t">–</span>';
+      const t = entry.actual || entry.estimate;
+      const late = entry.actual ? 0 : Math.max(0, entry.diff);
+      return `<span class="tt-t ${entry.actual?'ok':(late>2?'late':'')}">${fmtTime(t)}</span>`;
+    };
+
+    return `<div class="tt-row ${rowCls}">
+      <div class="tt-dot ${dotCls}"></div>
+      <div class="tt-name">${stationName(stop.code)}</div>
+      ${timeCell(stop.arr)}
+      ${timeCell(stop.dep)}
+      ${minsCell(stop, isPast)}
+    </div>`;
+  });
+
+  return `<div class="tt-wrap f3">
+    <div class="tt-thead"><span></span><span>Asema</span><span>Sap.</span><span>Läh.</span><span>Min</span></div>
+    <div>${rows.join('')}</div>
+  </div>`;
+}
+
+// ── Refresh timetable (called by toggle + timer) ──────────────
+function refreshTimetable() {
+  const showAll = $('allStopsToggle')?.checked || false;
+  const c = $('ttContainer');
+  if (c) c.innerHTML = buildTimetableHTML(_stops, _next, showAll);
+}
+
+// ── Update top card live values ───────────────────────────────
+function updateTopCard() {
+  _next = findNextStop(_stops);
+  const ne = _next ? (_next.arr || _next.dep) : null;
+  const nt = ne ? (ne.estimate || ne.scheduled) : null;
+  const delay = _next ? Math.max(_next.arr?.diff||0, _next.dep?.diff||0) : 0;
+  const isLate = delay > 2;
+  const mins = minutesUntil(nt);
+  const minsStr = mins===null ? '–' : (mins<=0 ? 'Nyt' : `${mins} min`);
+
+  const el = id => $(id);
+  if (el('iv-next'))  { el('iv-next').textContent = _next ? stationName(_next.code) : '–'; el('iv-next').className=`info-value ${_next?'ok':''}`; }
+  if (el('iv-arr'))   el('iv-arr').textContent = fmtTime(nt);
+  if (el('iv-mins'))  { el('iv-mins').textContent = minsStr; el('iv-mins').className=`info-value ${isLate?'late':''}`; }
+}
+
+// ── Map ───────────────────────────────────────────────────────
+function initMap() {
+  if (!window.L) { setTimeout(initMap, 300); return; }
+  const el = $('trainMap');
+  if (!el || _map) return;
+
+  _map = L.map('trainMap', { zoomControl:true, attributionControl:false }).setView([64.5,26],5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:17 }).addTo(_map);
+  L.control.attribution({ prefix:'© <a href="https://openstreetmap.org">OSM</a>' }).addTo(_map);
+
+  refreshMap();
+  setInterval(refreshMap, 30000);
+}
+
+async function refreshMap() {
+  const overlay = $('mapOverlay');
+  try {
+    const res = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest/');
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    if (overlay) overlay.style.display = 'none';
+    if (!_map) return;
+
+    _mapMarkers.forEach(m => m.remove());
+    _mapMarkers = [];
+
+    let ownLatLng = null;
+
+    for (const loc of data) {
+      const num = String(loc.trainNumber);
+      const isOwn = num === String(_myTrain);
+      const lat = loc.location?.coordinates?.[1];
+      const lng = loc.location?.coordinates?.[0];
+      if (!lat || !lng) continue;
+
+      const size = isOwn ? 18 : 10;
+      const icon = L.divIcon({ className: isOwn ? 'mk-own' : 'mk-other', iconSize:[size,size], iconAnchor:[size/2,size/2] });
+      const speed = loc.speed != null ? `${loc.speed} km/h` : '–';
+      const marker = L.marker([lat,lng], { icon, zIndexOffset: isOwn?1000:0 })
+        .bindPopup(`<b>${isOwn?'🚆 ':''}${num}</b><br>${speed}`)
+        .addTo(_map);
+      _mapMarkers.push(marker);
+
+      if (isOwn) { ownLatLng=[lat,lng]; marker.openPopup(); }
+    }
+
+    if (ownLatLng) _map.setView(ownLatLng, Math.max(_map.getZoom(),8), { animate:true });
+  } catch(e) {
+    if (overlay) overlay.querySelector('p').textContent = 'Sijaintitiedot ei saatavilla';
+  }
+}
+
+// ── Share ─────────────────────────────────────────────────────
+function shareLink(trainNumber) {
+  const url = `${location.origin}${location.pathname}?train=${trainNumber}`;
+  if (navigator.share) {
+    navigator.share({ title:`Juna ${trainNumber} – Junamatkaajan opas`, url }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        const btn = $('shareBtn');
+        if (btn) { const o=btn.innerHTML; btn.textContent='✓ Linkki kopioitu!'; setTimeout(()=>btn.innerHTML=o, 2200); }
+      })
+      .catch(() => prompt('Kopioi linkki:', url));
+  }
+}
+
+// ── Render helpers ────────────────────────────────────────────
 function renderLoading(msg) {
   app.innerHTML = `<div class="state-card f1"><div class="spinner"></div><p>${msg||'Ladataan…'}</p></div>`;
 }
 function renderError(msg) {
-  app.innerHTML = `<div class="state-card f1"><div style="font-size:2rem;margin-bottom:10px">⚠️</div><p>${msg}</p><br><button class="primary" onclick="goHome()" style="margin:0 auto;display:block;padding:10px 20px;font-size:0.9rem">← Takaisin</button></div>`;
+  app.innerHTML = `<div class="state-card f1"><div style="font-size:2rem;margin-bottom:10px">⚠️</div><p>${msg}</p><br><button class="btn-primary" onclick="goHome()" style="margin:0 auto;display:block;padding:10px 20px;font-size:.9rem">← Takaisin</button></div>`;
 }
 function renderInput() {
   app.innerHTML = `
@@ -362,164 +401,19 @@ function renderInput() {
       </div>
       <div class="input-row">
         <input id="ti" type="text" inputmode="numeric" maxlength="5" placeholder="68" />
-        <button class="primary" id="sb">Hae juna</button>
+        <button class="btn-primary" id="sb">Hae juna</button>
       </div>
     </div>`;
-  const inp = document.getElementById('ti');
-  const btn = document.getElementById('sb');
+  const inp = $('ti'), btn = $('sb');
   inp.focus();
-  function go() { const v=inp.value.trim(); if(!v) return; location.href=`?train=${encodeURIComponent(v)}`; }
+  const go = () => { const v=inp.value.trim(); if(v) location.href=`?train=${encodeURIComponent(v)}`; };
   btn.addEventListener('click', go);
   inp.addEventListener('keydown', e => { if(e.key==='Enter') go(); });
 }
 
-// Dwell time in minutes between arrival and departure at a stop
-function dwellMinutes(stop) {
-  if (!stop.arr || !stop.dep) return 0;
-  const a = new Date(stop.arr.scheduled);
-  const d = new Date(stop.dep.scheduled);
-  return Math.round((d - a) / 60000);
-}
-
-function buildTimetableHTML(stops, nextStop, showAll) {
-  if (!stops.length) return '<p style="padding:14px;color:var(--muted)">Ei aikataulutietoja.</p>';
-
-  // Filter: hide pass-through stops (dwell < 1 min and not first/last) unless showAll
-  const filtered = showAll ? stops : stops.filter((stop, i) => {
-    if (i === 0 || i === stops.length - 1) return true; // always show endpoints
-    if (stop === nextStop) return true;                  // always show next stop
-    return dwellMinutes(stop) >= 1;
-  });
-
-  const rows = filtered.map(stop => {
-    const isNext = stop === nextStop;
-    const refEntry = stop.dep || stop.arr;
-    const isPast = refEntry ? !!refEntry.actual : false;
-    const dotCls = isPast ? 'dot-p' : (isNext ? 'dot-c' : 'dot-f');
-    const rowCls = isPast ? 'past'  : (isNext ? 'cur'   : '');
-
-    function timeCell(entry) {
-      if (!entry) return '<span class="tt-t">–</span>';
-      const display = entry.actual || entry.estimate;
-      const late = entry.actual ? 0 : Math.max(0, entry.diff);
-      const cls = entry.actual ? 'ok' : (late > 2 ? 'late' : '');
-      return `<span class="tt-t ${cls}">${fmtTime(display)}</span>`;
-    }
-
-    // Minutes until arrival at this stop
-    let minsCell;
-    if (isPast) {
-      minsCell = '<span class="tt-mins past">–</span>';
-    } else {
-      const arrEntry = stop.arr || stop.dep;
-      const t = arrEntry ? (arrEntry.estimate || arrEntry.scheduled) : null;
-      const m = minutesUntil(t);
-      if (m === null) {
-        minsCell = '<span class="tt-mins far">–</span>';
-      } else if (m <= 0) {
-        minsCell = '<span class="tt-mins soon">Nyt</span>';
-      } else if (m <= 10) {
-        minsCell = `<span class="tt-mins soon">${m} min</span>`;
-      } else {
-        const isLateStop = Math.max(stop.arr?.diff||0, stop.dep?.diff||0) > 2;
-        minsCell = `<span class="tt-mins ${isLateStop?'late':'far'}">${m} min</span>`;
-      }
-    }
-
-    return `
-      <div class="tt-row ${rowCls}">
-        <div class="tt-dot ${dotCls}"></div>
-        <div class="tt-name">${stationName(stop.code)}</div>
-        ${timeCell(stop.arr)}
-        ${timeCell(stop.dep)}
-        ${minsCell}
-      </div>`;
-  });
-
-  return `
-    <div class="tt-wrap f3">
-      <div class="tt-thead">
-        <span></span><span>Asema</span>
-        <span>Sap.</span><span>Läh.</span><span>Min</span>
-      </div>
-      <div>${rows.join('')}</div>
-    </div>`;
-}
-
-  // init map after DOM ready
-  setTimeout(() => initMap(trainNumber), 100);
-}
-
-// ── Map ───────────────────────────────────────────────────────
-let _map = null, _mapMarkers = [], _myTrainNumber = null;
-
-async function initMap() {
-  if (!window.L) { setTimeout(initMap, 200); return; }
-  const el = document.getElementById('trainMap');
-  if (!el) return;
-
-  // Default center: Finland
-  _map = L.map('trainMap', { zoomControl: true, attributionControl: false }).setView([64.5, 26], 5);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 16 }).addTo(_map);
-  L.control.attribution({ prefix: '© OpenStreetMap' }).addTo(_map);
-
-  await refreshMap();
-
-  // Auto-refresh map every 30s
-  setInterval(refreshMap, 30000);
-}
-
-async function refreshMap() {
-  const loading = document.getElementById('mapLoading');
-  try {
-    const res = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest/');
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    if (loading) loading.style.display = 'none';
-    if (!_map) return;
-
-    // Remove old markers
-    _mapMarkers.forEach(m => m.remove());
-    _mapMarkers = [];
-
-    let ownLatLng = null;
-
-    for (const loc of data) {
-      const num = String(loc.trainNumber);
-      const isOwn = num === String(_myTrainNumber);
-      const lat = loc.location?.coordinates?.[1];
-      const lng = loc.location?.coordinates?.[0];
-      if (!lat || !lng) continue;
-
-      const size = isOwn ? 18 : 10;
-      const icon = L.divIcon({
-        className: isOwn ? 'train-marker-own' : 'train-marker-other',
-        iconSize: [size, size],
-        iconAnchor: [size/2, size/2],
-      });
-
-      const speed = loc.speed != null ? `${loc.speed} km/h` : '–';
-      const popup = `<div class="train-popup"><b>${isOwn ? '🚆 ' : ''}${num}</b><br>${speed}</div>`;
-
-      const marker = L.marker([lat, lng], { icon, zIndexOffset: isOwn ? 1000 : 0 })
-        .bindPopup(popup)
-        .addTo(_map);
-      _mapMarkers.push(marker);
-
-      if (isOwn) {
-        ownLatLng = [lat, lng];
-        marker.openPopup();
-      }
-    }
-
-    if (ownLatLng) _map.setView(ownLatLng, Math.max(_map.getZoom(), 8), { animate: true });
-  } catch(e) {
-    if (loading) { loading.querySelector('p').textContent = 'Sijaintitiedot ei saatavilla'; }
-  }
-}
-
+// ── Render train ──────────────────────────────────────────────
 function renderTrain(train, trainNumber) {
-  _myTrainNumber = trainNumber;
+  _myTrain = trainNumber;
   const rows  = train.timeTableRows || [];
   const stops = buildStops(rows);
   const next  = findNextStop(stops);
@@ -527,26 +421,22 @@ function renderTrain(train, trainNumber) {
 
   const origin = stationName(stops[0]?.code || '');
   const dest   = stationName(stops[stops.length-1]?.code || '');
-  const trainType = train.trainType || '';
-  const displayName = `${trainType}${trainNumber}`;
+  const displayName = `${train.trainType||''}${trainNumber}`;
 
-  const nextEntry = next ? (next.arr || next.dep) : null;
-  const nextTime  = nextEntry ? (nextEntry.estimate || nextEntry.scheduled) : null;
-  const delay     = next ? Math.max(next.arr?.diff||0, next.dep?.diff||0) : 0;
-  const isLate    = delay > 2;
-  const hasEnded  = !next;
+  const ne = next ? (next.arr || next.dep) : null;
+  const nt = ne ? (ne.estimate || ne.scheduled) : null;
+  const delay  = next ? Math.max(next.arr?.diff||0, next.dep?.diff||0) : 0;
+  const isLate = delay > 2;
+  const hasEnded = !next;
 
-  const mins = minutesUntil(nextTime);
-  const minsStr = mins === null ? '–' : (mins <= 0 ? 'Nyt' : `${mins} min`);
+  const mins = minutesUntil(nt);
+  const minsStr = mins===null ? '–' : (mins<=0 ? 'Nyt' : `${mins} min`);
+  const statusLabel = hasEnded ? 'Päättynyt' : (isLate ? `+${delay} min` : 'Ajallaan');
+  const statusClass = hasEnded ? 'pill-ended' : (isLate ? 'pill-late' : 'pill-ok');
 
-  let statusLabel, statusClass;
-  if (hasEnded)    { statusLabel='Päättynyt'; statusClass='pill-ended'; }
-  else if (isLate) { statusLabel=`+${delay} min`; statusClass='pill-late'; }
-  else             { statusLabel='Ajallaan';   statusClass='pill-ok'; }
-
-  document.getElementById('hdrBadge').textContent  = displayName;
-  document.getElementById('hdrBadge').style.display = 'inline-block';
-  document.getElementById('hdrChange').style.display = 'inline-block';
+  $('hdrBadge').textContent = displayName;
+  $('hdrBadge').style.display = 'inline-block';
+  $('hdrChange').style.display = 'inline-block';
 
   const iframeUrl = `https://venaarauhassa.fi/train/${todayStr()}/${trainNumber}`;
 
@@ -554,7 +444,7 @@ function renderTrain(train, trainNumber) {
     <div class="card card-accent f1">
       <div class="train-name-row">
         <span class="train-name">${displayName}</span>
-        <span class="status-pill ${statusClass}">${statusLabel}</span>
+        <span class="pill ${statusClass}">${statusLabel}</span>
       </div>
       <div class="route-row">
         <span class="route-station">${origin}</span>
@@ -564,11 +454,11 @@ function renderTrain(train, trainNumber) {
       <div class="info-grid">
         <div class="info-cell">
           <div class="info-label">Seuraava asema</div>
-          <div class="info-value ${hasEnded?'':'ok'}" id="iv-next">${next ? stationName(next.code) : '–'}</div>
+          <div class="info-value ${hasEnded?'':'ok'}" id="iv-next">${next?stationName(next.code):'–'}</div>
         </div>
         <div class="info-cell">
           <div class="info-label">Saapuu</div>
-          <div class="info-value" id="iv-arr">${fmtTime(nextTime)}</div>
+          <div class="info-value" id="iv-arr">${fmtTime(nt)}</div>
         </div>
         <div class="info-cell">
           <div class="info-label">Aikaa</div>
@@ -582,9 +472,9 @@ function renderTrain(train, trainNumber) {
       <button class="share-btn" id="shareBtn" onclick="shareLink('${trainNumber}')">🔗 Jaa linkki junaan</button>
     </div>
 
-    <div class="section-header f2" style="align-items:center">
-      <span class="section-title">Aikataulu</span>
-      <div class="section-line"></div>
+    <div class="sec f2">
+      <span class="sec-title">Aikataulu</span>
+      <div class="sec-line"></div>
       <div class="toggle-row">
         <label class="toggle-label" for="allStopsToggle">Kaikki asemat</label>
         <label class="toggle">
@@ -596,37 +486,29 @@ function renderTrain(train, trainNumber) {
     </div>
     <div id="ttContainer">${buildTimetableHTML(stops, next, false)}</div>
 
-    <div class="section-header f3">
-      <span class="section-title">Junat kartalla</span>
-      <div class="section-line"></div>
+    <div class="sec f3">
+      <span class="sec-title">Junat kartalla</span>
+      <div class="sec-line"></div>
     </div>
     <div class="map-wrap f3">
-      <div class="map-loading" id="mapLoading"><div class="spinner"></div><p>Ladataan karttaa…</p></div>
+      <div id="mapOverlay" class="map-overlay"><div class="spinner"></div><p>Ladataan karttaa…</p></div>
       <div id="trainMap"></div>
-      <button class="map-refresh-btn" onclick="refreshMap()">↻ Päivitä</button>
+      <button class="map-refresh" onclick="refreshMap()">↻ Päivitä</button>
     </div>
 
-    <div class="section-header f3">
-      <span class="section-title">Vaunukartta</span>
-      <div class="section-line"></div>
+    <div class="sec f3">
+      <span class="sec-title">Vaunukartta</span>
+      <div class="sec-line"></div>
     </div>
-    <div class="iframe-wrapper f4">
+    <div class="iframe-wrap f4">
       <iframe src="${iframeUrl}" title="Vaunukartta – Juna ${trainNumber}" allowfullscreen loading="lazy"></iframe>
     </div>`;
+
+  // Init map after DOM is ready
+  setTimeout(initMap, 50);
 }
 
-function shareLink(trainNumber) {
-  const url = `${location.origin}${location.pathname}?train=${trainNumber}`;
-  if (navigator.share) {
-    navigator.share({ title:`Juna ${trainNumber} – Junamatkaajan opas`, url }).catch(()=>{});
-  } else {
-    navigator.clipboard.writeText(url).then(() => {
-      const btn = document.getElementById('shareBtn');
-      if (btn) { const o=btn.innerHTML; btn.textContent='✓ Linkki kopioitu!'; setTimeout(()=>{btn.innerHTML=o;},2200); }
-    }).catch(() => { prompt('Kopioi linkki:', url); });
-  }
-}
-
+// ── Main ──────────────────────────────────────────────────────
 async function main() {
   const trainNumber = getTrainFromURL();
   if (!trainNumber) { renderInput(); return; }
@@ -643,8 +525,7 @@ async function main() {
       renderError(`Junaa <b>${trainNumber}</b> ei löydy tämän päivän liikenteestä.`);
       return;
     }
-    const train = Array.isArray(data) ? data[0] : data;
-    renderTrain(train, trainNumber);
+    renderTrain(Array.isArray(data) ? data[0] : data, trainNumber);
   } catch(err) {
     renderError(`Junatietojen haku epäonnistui.<br><small style="color:var(--muted)">${err.message}</small>`);
   }
@@ -652,27 +533,13 @@ async function main() {
 
 main();
 
-// ── Live minute tick ──────────────────────────────────────────
-// Refresh timetable countdowns every 60s
+// ── Live tick every 60s ───────────────────────────────────────
 setInterval(() => {
-  if (_stops.length) {
-    _next = findNextStop(_stops);
-    const showAll = document.getElementById('allStopsToggle')?.checked || false;
-    const container = document.getElementById('ttContainer');
-    if (container) container.innerHTML = buildTimetableHTML(_stops, _next, showAll);
-    // Update top card
-    const nextEntry = _next ? (_next.arr || _next.dep) : null;
-    const nextTime  = nextEntry ? (nextEntry.estimate || nextEntry.scheduled) : null;
-    const delay     = _next ? Math.max(_next.arr?.diff||0, _next.dep?.diff||0) : 0;
-    const isLate    = delay > 2;
-    const mins      = minutesUntil(nextTime);
-    const minsStr   = mins === null ? '–' : (mins <= 0 ? 'Nyt' : `${mins} min`);
-    const el = id => document.getElementById(id);
-    if (el('iv-next'))  { el('iv-next').textContent  = _next ? stationName(_next.code) : '–'; el('iv-next').className  = `info-value ${_next?'ok':''}`; }
-    if (el('iv-arr'))     el('iv-arr').textContent   = fmtTime(nextTime);
-    if (el('iv-mins'))  { el('iv-mins').textContent  = minsStr; el('iv-mins').className  = `info-value ${isLate?'late':''}`; }
-  }
+  if (!_stops.length) return;
+  updateTopCard();
+  refreshTimetable();
 }, 60000);
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </body>
 </html>
