@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Junamatkaajan opas</title>
+  <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Junamatkaajan opas&quot;,&quot;short_name&quot;:&quot;Juna&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0f1117&quot;,&quot;theme_color&quot;:&quot;#00c896&quot;}" />
+  <meta name="theme-color" content="#00c896" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500&display=swap');
+
+    :root {
+      --bg: #0f1117;
+      --surface: #181c27;
+      --surface2: #1f2436;
+      --border: #2a3045;
+      --accent: #00c896;
+      --accent2: #00a2ff;
+      --text: #e8ecf4;
+      --muted: #6b7594;
+      --danger: #ff4f6b;
+      --radius: 16px;
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f0f2f8;
+        --surface: #ffffff;
+        --surface2: #e8ecf4;
+        --border: #d0d6e8;
+        --text: #0f1117;
+        --muted: #6b7594;
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-icon svg { display: block; }
+
+    header h1 {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      flex: 1;
+    }
+
+    .header-train {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 16px;
+      gap: 16px;
+    }
+
+    /* ── Input screen ── */
+    .input-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      flex: 1;
+      padding: 40px 0;
+    }
+
+    .input-hero {
+      text-align: center;
+    }
+
+    .input-hero h2 {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, var(--text) 0%, var(--muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .input-hero p {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-family: var(--font-mono);
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+    }
+
+    input[type="text"]::placeholder {
+      color: var(--muted);
+      font-size: 0.9rem;
+      letter-spacing: 0;
+    }
+
+    button {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 22px;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    button:hover { opacity: 0.9; }
+    button:active { transform: scale(0.97); }
+
+    /* ── Train card ── */
+    .train-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .train-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+
+    .train-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .train-type {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+
+    .train-status {
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-running {
+      background: color-mix(in srgb, var(--accent) 15%, transparent);
+      color: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    .status-ended {
+      background: color-mix(in srgb, var(--muted) 15%, transparent);
+      color: var(--muted);
+      border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+    }
+
+    .status-late {
+      background: color-mix(in srgb, var(--danger) 15%, transparent);
+      color: var(--danger);
+      border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+    }
+
+    .route {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .station-name {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .route-arrow {
+      color: var(--accent);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .info-cell {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .info-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .info-value.highlight {
+      color: var(--accent);
+    }
+
+    .info-value.late {
+      color: var(--danger);
+    }
+
+    /* ── Share button ── */
+    .share-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-top: 14px;
+      justify-content: center;
+    }
+
+    .share-btn:hover { background: var(--border); opacity: 1; }
+
+    /* ── Seat map section ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .iframe-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .iframe-wrapper iframe {
+      width: 100%;
+      height: 70vh;
+      border: none;
+      display: block;
+    }
+
+    /* ── Loading / Error ── */
+    .state-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 20px;
+      text-align: center;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .state-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .error-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── Animations ── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in { animation: fadeIn 0.35s ease both; }
+    .fade-in-2 { animation: fadeIn 0.35s 0.1s ease both; }
+    .fade-in-3 { animation: fadeIn 0.35s 0.2s ease both; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <rect x="2" y="6" width="14" height="9" rx="2" fill="#000" fill-opacity=".9"/>
+        <rect x="5" y="3" width="8" height="4" rx="1.5" fill="#000" fill-opacity=".7"/>
+        <circle cx="5.5" cy="15.5" r="1.5" fill="#000"/>
+        <circle cx="12.5" cy="15.5" r="1.5" fill="#000"/>
+        <rect x="4" y="8.5" width="3" height="2.5" rx="0.5" fill="#00c896"/>
+        <rect x="7.5" y="8.5" width="3" height="2.5" rx="0.5" fill="#00c896"/>
+        <rect x="11" y="8.5" width="3" height="2.5" rx="0.5" fill="#00c896"/>
+      </svg>
+    </div>
+    <h1>Junamatkaajan opas</h1>
+    <div id="header-train-badge" style="display:none" class="header-train"></div>
+  </header>
+
+  <main id="app"></main>
+
+  <footer>
+    Junatiedot: <a href="https://digitraffic.fi" target="_blank">Digitraffic</a> ·
+    Vaunukartta: <a href="https://venaarauhassa.fi" target="_blank">venaarauhassa.fi</a>
+  </footer>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const app = $('app');
+
+    // ── Date helper ──────────────────────────────────────
+    function todayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // ── URL parsing ──────────────────────────────────────
+    function getTrainFromURL() {
+      // ?train=68
+      const params = new URLSearchParams(location.search);
+      if (params.get('train')) return params.get('train').trim();
+      // /68 or /#/68
+      const path = (location.pathname + location.hash).replace(/[^0-9]/g, '');
+      if (path.length > 0 && path.length <= 5) return path;
+      return null;
+    }
+
+    // ── Station name helper ──────────────────────────────
+    const STATION_NAMES = {
+      HKI: 'Helsinki', TPE: 'Tampere', TKU: 'Turku', OL: 'Oulu',
+      KUO: 'Kuopio', JY: 'Jyväskylä', TRE: 'Tampere', LH: 'Lahti',
+      KV: 'Kouvola', SM: 'Seinäjoki', RI: 'Riihimäki', KE: 'Kerava',
+      PM: 'Pieksämäki', MKL: 'Mikkeli', IMR: 'Imatra', LPR: 'Lappeenranta',
+      JOE: 'Joensuu', KAJ: 'Kajaani', RVN: 'Rovaniemi', LL: 'Lohja',
+      TL: 'Toijala', PAR: 'Parikkala', SAV: 'Savonlinna',
+    };
+
+    function stationLabel(code) {
+      return STATION_NAMES[code] || code;
+    }
+
+    // ── Time helpers ─────────────────────────────────────
+    function fmtTime(iso) {
+      if (!iso) return '–';
+      const d = new Date(iso);
+      return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    function minutesUntil(iso) {
+      if (!iso) return null;
+      const diff = Math.round((new Date(iso) - Date.now()) / 60000);
+      return diff;
+    }
+
+    // ── Find next station ────────────────────────────────
+    function findNextStation(rows) {
+      const now = Date.now();
+      for (const row of rows) {
+        if (row.type !== 'STOPPING' && row.type !== 'PASSING') continue;
+        const arr = row.scheduledTime || row.liveEstimateTime;
+        if (!arr) continue;
+        if (new Date(arr) > now && !row.actualTime) return row;
+      }
+      return null;
+    }
+
+    // ── Render: input screen ─────────────────────────────
+    function renderInput() {
+      app.innerHTML = `
+        <div class="input-screen fade-in">
+          <div class="input-hero">
+            <h2>Hae junasi</h2>
+            <p>Syötä junanumero nähdäksesi tiedot</p>
+          </div>
+          <div class="input-row">
+            <input id="trainInput" type="text" placeholder="Junanumero" maxlength="5" inputmode="numeric" />
+            <button id="searchBtn">Hae juna</button>
+          </div>
+        </div>`;
+
+      const input = $('trainInput');
+      const btn = $('searchBtn');
+
+      input.focus();
+
+      function go() {
+        const v = input.value.trim();
+        if (!v) return;
+        location.href = `?train=${encodeURIComponent(v)}`;
+      }
+
+      btn.addEventListener('click', go);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+    }
+
+    // ── Render: loading ──────────────────────────────────
+    function renderLoading() {
+      app.innerHTML = `
+        <div class="state-card fade-in">
+          <div class="spinner"></div>
+          <p>Haetaan junatietoja…</p>
+        </div>`;
+    }
+
+    // ── Render: error ────────────────────────────────────
+    function renderError(msg) {
+      app.innerHTML = `
+        <div class="state-card fade-in">
+          <div class="error-icon">⚠️</div>
+          <p>${msg}</p>
+          <br>
+          <button onclick="location.href=location.pathname" style="margin:0 auto;display:block;padding:10px 20px;font-size:0.9rem;">
+            Yritä uudelleen
+          </button>
+        </div>`;
+    }
+
+    // ── Share ────────────────────────────────────────────
+    function shareLink(trainNumber) {
+      const url = `${location.origin}${location.pathname}?train=${trainNumber}`;
+      if (navigator.share) {
+        navigator.share({ title: `Juna ${trainNumber}`, url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url).then(() => {
+          const btn = $('shareBtn');
+          if (btn) { btn.textContent = '✓ Kopioitu!'; setTimeout(() => { btn.innerHTML = '🔗 Jaa linkki'; }, 2000); }
+        });
+      }
+    }
+
+    // ── Render: train data ───────────────────────────────
+    function renderTrain(train, trainNumber) {
+      const rows = train.timeTableRows || [];
+      const first = rows.find(r => r.type === 'DEPARTURE' || r.type === 'STOPPING');
+      const last = [...rows].reverse().find(r => r.type === 'ARRIVAL' || r.type === 'STOPPING');
+      const origin = stationLabel(first?.stationShortCode || '');
+      const dest = stationLabel(last?.stationShortCode || '');
+      const next = findNextStation(rows);
+
+      const lateMinutes = next?.differenceInMinutes || 0;
+      const isLate = lateMinutes > 2;
+      const hasEnded = !next;
+
+      const arrTime = next ? (next.liveEstimateTime || next.scheduledTime) : null;
+      const mins = minutesUntil(arrTime);
+      const minsStr = mins !== null
+        ? (mins <= 0 ? 'Nyt' : `${mins} min`)
+        : '–';
+
+      const statusLabel = hasEnded ? 'Päättynyt' : (isLate ? `+${lateMinutes} min` : 'Ajallaan');
+      const statusClass = hasEnded ? 'status-ended' : (isLate ? 'status-late' : 'status-running');
+
+      const trainCategory = train.trainCategory || '';
+      const trainTypeCode = train.trainType || '';
+      const displayName = `${trainTypeCode}${trainNumber}`;
+
+      $('header-train-badge').textContent = displayName;
+      $('header-train-badge').style.display = 'block';
+
+      const date = todayStr();
+      const iframeUrl = `https://venaarauhassa.fi/train/${date}/${trainNumber}`;
+
+      app.innerHTML = `
+        <div class="train-card fade-in">
+          <div class="train-badge">
+            <span class="train-type">${displayName}</span>
+            <span class="train-status ${statusClass}">${statusLabel}</span>
+          </div>
+          <div class="route">
+            <span class="station-name">${origin}</span>
+            <span class="route-arrow">→</span>
+            <span class="station-name">${dest}</span>
+          </div>
+          <div class="info-grid">
+            <div class="info-cell">
+              <div class="info-label">Seuraava asema</div>
+              <div class="info-value ${hasEnded ? '' : 'highlight'}">${next ? stationLabel(next.stationShortCode) : '–'}</div>
+            </div>
+            <div class="info-cell">
+              <div class="info-label">Saapuu</div>
+              <div class="info-value">${fmtTime(arrTime)}</div>
+            </div>
+            <div class="info-cell">
+              <div class="info-label">Aikaa</div>
+              <div class="info-value ${isLate ? 'late' : ''}">${minsStr}</div>
+            </div>
+            <div class="info-cell">
+              <div class="info-label">Tyyppi</div>
+              <div class="info-value">${trainCategory || trainTypeCode || '–'}</div>
+            </div>
+          </div>
+          <button class="share-btn" id="shareBtn" onclick="shareLink('${trainNumber}')">
+            🔗 Jaa linkki
+          </button>
+        </div>
+
+        <div class="section-header fade-in-2">
+          <span class="section-title">Vaunukartta</span>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="iframe-wrapper fade-in-3">
+          <iframe
+            src="${iframeUrl}"
+            title="Vaunukartta – Juna ${trainNumber}"
+            allowfullscreen
+            loading="lazy"
+          ></iframe>
+        </div>`;
+    }
+
+    // ── Main ─────────────────────────────────────────────
+    async function main() {
+      const trainNumber = getTrainFromURL();
+
+      if (!trainNumber) {
+        renderInput();
+        return;
+      }
+
+      renderLoading();
+
+      try {
+        const res = await fetch(`https://rata.digitraffic.fi/api/v1/trains/latest/${trainNumber}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+          renderError(`Junaa ${trainNumber} ei löydy tänään.`);
+          return;
+        }
+        const train = Array.isArray(data) ? data[0] : data;
+        renderTrain(train, trainNumber);
+      } catch (err) {
+        renderError(`Junatietojen haku epäonnistui.<br><small>${err.message}</small>`);
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>
